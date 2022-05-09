@@ -31,10 +31,53 @@ def P(Y,z):
 CI = np.array([p0])
 p = odeint(P, CI, z)
 
-plt.figure()
-plt.plot(z,p, color='red')
-plt.ylabel('Pression en Pa')
-plt.xlabel('Altitude en m')
-plt.grid()
-plt.show()
+#plt.figure()
+#plt.plot(z,p, color='red')
+#plt.ylabel('Pression en Pa')
+#plt.xlabel('Altitude en m')
+#plt.grid()
+#plt.show()
 
+##Première phase du vol
+
+nb_moteurs = 9 #nombre de moteurs en marche
+
+alpha = 179.5*np.pi/180 #rad
+
+def masse (t,nb_moteurs=9): #masse en fonction du temps
+    return 2007240 - 518*t*nb_moteurs #kg
+    
+def propulsion (nb_moteurs=9):
+    
+    return 1961e3 * nb_moteurs #N
+    
+
+
+def trajectoire ():
+    N = 400
+    
+    x0 = 0
+    y0 = 0
+    
+    X = np.zeros(N)
+    Y = np.zeros(N)
+    
+    X[0] = x0
+    Y[0] = y0
+    
+    T = np.linspace(0,400,N) #tableau numpy du temps
+    
+    for i in range (1,N) : 
+    
+        if masse(T[i]) < 0 : 
+            X[i] = 1/2*g(Y[i-1])*np.sin(alpha)*T[i]**2
+            Y[i] = 1/2*(propulsion()/masse(T[i])-g(Y[i-1])*np.cos(alpha))*T[i]**2
+        
+        
+    return X,Y
+    
+
+plt.plot(trajectoire()[0],trajectoire()[1])
+plt.xlabel ('x en m')
+plt.ylabel ('z en m')
+plt.show()
