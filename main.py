@@ -45,7 +45,7 @@ nb_moteurs = 9 #nombre de moteurs en marche
 alpha = 179.5*np.pi/180 #rad
 
 def masse (t,nb_moteurs=9): #masse en fonction du temps
-    return 2007240 - 518*t*nb_moteurs #kg
+    return 1807240 - 518*t*nb_moteurs #kg
     
 def propulsion (nb_moteurs=9):
     
