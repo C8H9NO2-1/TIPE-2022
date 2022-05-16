@@ -60,7 +60,7 @@ def propulsion (out_of_fuel,nb_moteurs=9):
 
 def rho_air(z):
     y = round(z)
-    M_air = 0.01801528
+    M_air = 0.01801528 #! Check this data
     R = 8.314
     return p[y][0] * M_air / (R * (Temp(z) + 273.15))
 
@@ -96,7 +96,7 @@ def trajectoire ():
         p = propulsion(out_of_fuel)
         # X[i] = 1/2*g(Y[i-1])*np.sin(alpha)*T[i]**2
         v = (p/m - g(Y[i-1]) - frottements(Y[i - 1], m, v) * np.sign(v)) * T[i]
-        Y[i] = 1/2*v*T[i]**2
+        Y[i] = 1/2*v*T[i]
         
         
     return X,Y
