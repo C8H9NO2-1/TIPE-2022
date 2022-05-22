@@ -101,6 +101,10 @@ def trajectoire ():
         v = (p/m - g(Y[i-1]) - frottements(Y[i - 1], v) * np.sign(v) / m) * T[i]
         Y[i] = 1/2*v*T[i]
         
+        # Comme ça la fusée ne s'enfonce pas dans le sol
+        if Y[i] < 0:
+            Y[i] = 0
+            X[i] = X[i - 1]
         
     return X,Y
     
