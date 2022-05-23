@@ -74,11 +74,10 @@ def frottements(z, v):
     return 1/2 * rho_air(z) * Cx * S * v**2
 
 
-def trajectoire ():
+def trajectoire1 ():
     N = 400
     
-    x0 = 0
-    y0 = 0
+    x0 = y0 = 0
     
     out_of_fuel = False
     
@@ -108,7 +107,26 @@ def trajectoire ():
         
     return X,Y
     
-x, y = trajectoire()
+def trajectoire2():
+    N = 3600
+    
+    x0, y0 = 0 #! À revoir
+    
+    X = np.zeros(N)
+    Y = np.zeros(N)
+    X[0] = x0
+    Y[0] = y0
+    
+    v = 0 #! Ici aussi
+    
+    T = np.linspace(0, 3600, N) #tableau numpy du temps
+    
+    for i in range(1, N):
+        pass
+
+    return X, Y
+
+x, y = trajectoire1()
 plt.plot(x,y)
 plt.xlabel ('x en m')
 plt.ylabel ('z en m')
