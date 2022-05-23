@@ -44,7 +44,7 @@ p = odeint(P, CI, z)
 
 nb_moteurs = 9 #nombre de moteurs en marche
 
-alpha = 179.5*np.pi/180 #rad
+alpha = 0*np.pi/180 #rad
 
 def masse (t,nb_moteurs=9): #masse en fonction du temps
     n = 518*t*nb_moteurs
@@ -64,48 +64,64 @@ def rho_air(z):
     y = round(z)
     M_air = 0.01801528 #! Check this data
     R = 8.314
-    return p[y][0] * M_air / (R * Temp(z))
+    return p0 * M_air / (R * Temp(z))
 
 def frottements(z, v):
     r1 = 6.4 / 2
     r2 = 8.6 / 2
     S = np.pi * (r1**2 + r2**2)
     Cx = 0.02
-    return 1/2 * rho_air(z) * Cx * S * v**2
+    return 1/2 * rho_air(z) * Cx * S * v**2 * np.sign(-v)
 
 
 def trajectoire1 ():
     N = 400
     
     x0 = y0 = 0
-    
     out_of_fuel = False
     
     X = np.zeros(N)
     Y = np.zeros(N)
-    
     X[0] = x0
     Y[0] = y0
     
-    v = 0
+    vx_1 = vy_1 = v_1 = 0
     
-    T = np.linspace(0,400,N) #tableau numpy du temps
+    fx = fy = frottements(0, 0)
+    
+    T = np.linspace(0,60,N) #tableau numpy du temps
     
     for i in range (1,N) : 
     
         m, out_of_fuel = masse(T[i])
         p = propulsion(out_of_fuel)
-        # X[i] = 1/2*g(Y[i-1])*np.sin(alpha)*T[i]**2
-        print("Altitude // ", i, ": ", Y[i-1])
-        v = (p/m - g(Y[i-1]) - frottements(Y[i - 1], v) * np.sign(v) / m) * T[i]
-        Y[i] = 1/2*v*T[i]
         
-        # Comme ça la fusée ne s'enfonce pas dans le sol
+        #* Selon la base 1:
+        vx_1 = (-np.sin(alpha) * g(Y[i - 1]) + fx / m) * T[i]
+        vy_1 = (-np.cos(alpha) * g(Y[i - 1]) + (fy + p) / m) * T[i]
+        v_1 = np.sqrt(vx_1**2 + vy_1**2)
+        
+        #* Selon la base 0:
+        vx_0 = np.cos(alpha) * vx_1 - np.sin(alpha) * vy_1
+        vy_0 = np.sin(alpha) * vx_1 + np.cos(alpha) * vy_1
+        
+        # print(vy_0)
+        
+        X[i] = 1/2 * vx_0 * T[i]
+        Y[i] = 1/2*vy_0*T[i]
+        
+        #? Comme ça la fusée ne s'enfonce pas dans le sol
         if Y[i] < 0:
             Y[i] = 0
             X[i] = X[i - 1]
+            # vx_1 = vy_1 = v_1 = vx_0 = vy_0 = 0
+            
+        fx = frottements(Y[i], vx_1)
+        fy = frottements(Y[i], vy_1)
         
-    return X,Y
+        print("Altitude // ", i, ": ", Y[i])
+        
+    return X,Y,T
     
 def trajectoire2():
     N = 3600
@@ -126,8 +142,8 @@ def trajectoire2():
 
     return X, Y
 
-x, y = trajectoire1()
-plt.plot(x,y)
-plt.xlabel ('x en m')
-plt.ylabel ('z en m')
+x, y, t = trajectoire1()
+plt.plot(t,y,ls="-")
+# plt.xlabel ('x en m')
+# plt.ylabel ('z en m')
 plt.show()
