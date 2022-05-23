@@ -89,7 +89,7 @@ def trajectoire1 ():
     
     fx = fy = frottements(0, 0)
     
-    T = np.linspace(0,60,N) #tableau numpy du temps
+    T = np.linspace(0,400,N) #tableau numpy du temps
     
     for i in range (1,N) : 
     
@@ -109,6 +109,9 @@ def trajectoire1 ():
         
         X[i] = 1/2 * vx_0 * T[i]
         Y[i] = 1/2*vy_0*T[i]
+        
+        if Y[i] >= 80e3:
+            return X, Y, T
         
         #? Comme ça la fusée ne s'enfonce pas dans le sol
         if Y[i] < 0:
@@ -143,7 +146,7 @@ def trajectoire2():
     return X, Y
 
 x, y, t = trajectoire1()
-plt.plot(t,y,ls="-")
+plt.plot(x,y,ls="none", marker="x")
 # plt.xlabel ('x en m')
 # plt.ylabel ('z en m')
 plt.show()
