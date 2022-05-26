@@ -1,9 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt 
 
-
-
-
 def masse (t,nb_moteurs=9): #masse en fonction du temps
 
     n = 518*t*nb_moteurs
@@ -30,6 +27,7 @@ def trajectoire1 (duree, angle):
     
     x0 = 0
     y0 = 0
+    v0 = 0
     
     m, out_of_fuel = masse(0)
     F = propulsion(out_of_fuel)
@@ -38,6 +36,11 @@ def trajectoire1 (duree, angle):
     X = np.zeros(N)
     Y = np.zeros(N)
     V = np.zeros(N)
+    
+    # Initialisation des tableaux
+    X[0] = x0
+    Y[0] = y0
+    V[0] = v0
     
     T = np.linspace(0,duree,N) #tableau numpy du temps
 
@@ -65,12 +68,12 @@ def trajectoire1 (duree, angle):
             t_0 = T[i]
 
             #Calcul de la vitesse
-            vx_0 = -F/m*np.sin(alpha)*T[i]
-            vy_0 = (F/m*np.cos(alpha)-g)*T[i]
+            vx_0 = -F/m*np.sin(alpha)*t_0
+            vy_0 = (F/m*np.cos(alpha)-g)*t_0
 
             #Calcul de la position
-            x_0 = 1/2 * vx_0 * T[i]
-            y_0 = 1/2 * vy_0 * T[i]
+            x_0 = 1/2 * vx_0 * t_0
+            y_0 = 1/2 * vy_0 * t_0
 
             #Enregistrement dans le tableau
             X[i] = x_0
