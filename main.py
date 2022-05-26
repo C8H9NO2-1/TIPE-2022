@@ -44,17 +44,17 @@ p = odeint(P, CI, z)
 
 nb_moteurs = 9 #nombre de moteurs en marche
 
-alpha = 0*np.pi/180 #rad
+alpha = -50*np.pi/180 #rad
 
-def masse (t,nb_moteurs=9): #masse en fonction du temps
+def masse_ensemble(t,nb_moteurs=9): #masse de l'ensemble booster avion en fonction du temps
     n = 518*t*nb_moteurs
     
     if n > 1500000:
-        return 1807240, True
+        return 328000, True
     else:
         return 1807240 - n, False #kg
     
-def propulsion (out_of_fuel,nb_moteurs=9):
+def propulsion(out_of_fuel,nb_moteurs=9):
     if out_of_fuel:
         return 0
     else:
@@ -93,7 +93,7 @@ def trajectoire1 ():
     
     for i in range (1,N) : 
     
-        m, out_of_fuel = masse(T[i])
+        m, out_of_fuel = masse_ensemble(T[i])
         p = propulsion(out_of_fuel)
         
         #* Selon la base 1:
@@ -111,7 +111,8 @@ def trajectoire1 ():
         Y[i] = 1/2*vy_0*T[i]
         
         if Y[i] >= 80e3:
-            return X, Y, T
+            print(m - 328000)
+            return X, Y, T, i
         
         #? Comme ça la fusée ne s'enfonce pas dans le sol
         if Y[i] < 0:
@@ -124,12 +125,10 @@ def trajectoire1 ():
         
         print("Altitude // ", i, ": ", Y[i])
         
-    return X,Y,T
+    return X,Y,T, N - 1 # This line is just here to make the code prettier
     
-def trajectoire2():
+def trajectoire2(x0, y0):
     N = 3600
-    
-    x0, y0 = 0 #! À revoir
     
     X = np.zeros(N)
     Y = np.zeros(N)
@@ -145,8 +144,10 @@ def trajectoire2():
 
     return X, Y
 
-x, y, t = trajectoire1()
-plt.plot(x,y,ls="none", marker="x")
+x, y, t, i = trajectoire1()
+x = x[:i]
+y = y[:i]
+plt.plot(x,y)
 # plt.xlabel ('x en m')
 # plt.ylabel ('z en m')
 plt.show()
