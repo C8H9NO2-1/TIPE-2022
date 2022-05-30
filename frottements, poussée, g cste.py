@@ -20,11 +20,11 @@ def calc (Y,t) :
     #Y[1] => Vitesse selon y
     #Y[2] => masse m
     #Y[3] => x
-    #Y[4] => z
+    #Y[4] => y
 
     #dv => acceleration
     #dm => dérivée de la masse
-    #dz => vitesse selon y
+    #dy => vitesse selon y
     #dx => vitesse selon x
 
 
@@ -33,7 +33,7 @@ def calc (Y,t) :
         dvx = (-F*np.sin(alpha) - k*np.sqrt(Y[0]**2*Y[1]**2)*Y[0])/Y[2] 
         dvy = (F*np.cos(alpha) - k*np.sqrt(Y[0]**2*Y[1]**2)*Y[1])/Y[2] - g
         dm = -D
-        dz = Y[1]
+        dy = Y[1]
         dx = Y[0]
 
     else : #Il n'y a plus de carburant 
@@ -41,7 +41,7 @@ def calc (Y,t) :
         dvx = -k*np.sqrt(Y[0]**2*Y[1]**2)*Y[0]/Y[2]
         dvy = - k*np.sqrt(Y[0]**2*Y[1]**2)*Y[1]/Y[2] - g
         dm = 0
-        dz = Y[1]
+        dy = Y[1]
         dx = Y[0]
 
     
@@ -50,11 +50,11 @@ def calc (Y,t) :
         dvx = 0
         dvy = 0
         dm = 0
-        dz = 0
+        dy = 0
         dx = 0
 
 
-    return np.array([dvx, dvy, dm, dx, dz])
+    return np.array([dvx, dvy, dm, dx, dy])
 
 
 def crop (t,v) : #On redimensionne les tableaux de temps et de vitesse
