@@ -58,7 +58,7 @@ def calc (Y,t) :
 
 
 def crop (t,v) : #On redimensionne les tableaux de temps et de vitesse
-    for i in range (len(t)+1) : 
+    for i in range (len(t)) :
         if v[i]==v[i+1] : return t[:i], v[:i]
 
 
@@ -75,9 +75,11 @@ y = np.array ([sol[i][4] for i in range (n)])
 m = np.array ([sol[i][2] for i in range (n)])
 
 #Tracé
+x, y = crop(x, y)
+t, v = crop(t, v)
 plt.figure()
 plt.plot(x,y)
 plt.figure()
-plt.plot(crop(t,v)[0],crop(t,v)[1])
+plt.plot(t,v)
 plt.show()
 
