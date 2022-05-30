@@ -9,7 +9,7 @@ def g(z):
 	return G*MT/(z+6400e3)**2
 
 p0=1e5 #Pa
-z=np.linspace(0,15000000,15000000) #altitude
+z=np.linspace(0,150000,150000) #altitude
 
 ##Température en fonction de l'altitude en Kelvin
 def Temp(z):
@@ -33,12 +33,12 @@ def P(Y,z):
 CI = np.array([p0])
 p = odeint(P, CI, z)
 
-# plt.figure()
-# plt.plot(z,p, color='red')
-# plt.ylabel('Pression en Pa')
-# plt.xlabel('Altitude en m')
-# plt.grid()
-# plt.show()
+plt.figure()
+plt.plot(z,p, color='red')
+plt.ylabel('Pression en Pa')
+plt.xlabel('Altitude en m')
+plt.grid()
+plt.show()
 
 ##Première phase du vol
 
@@ -144,10 +144,10 @@ def trajectoire2(x0, y0):
 
     return X, Y
 
-x, y, t, i = trajectoire1()
-x = x[:i]
-y = y[:i]
-plt.plot(x,y)
-# plt.xlabel ('x en m')
-# plt.ylabel ('z en m')
-plt.show()
+# x, y, t, i = trajectoire1()
+# x = x[:i]
+# y = y[:i]
+# plt.plot(x,y)
+# # plt.xlabel ('x en m')
+# # plt.ylabel ('z en m')
+# plt.show()

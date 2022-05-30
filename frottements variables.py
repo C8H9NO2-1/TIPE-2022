@@ -9,16 +9,6 @@ g = 9.8
 
 t = np.linspace(0,duree,N) #tableau du temps
 
-
-def test (Y,y) :
-
-    M = 28.956 #g/mol
-    R = 8.314e3
-    return np.array([- Y[0] * M * g / (R * Temp(y))])
-
-
-
-
 def Temp(y):
     def aux (y):
         if y < 11e3 : return -6.5*y*1e-3 + 15
@@ -30,18 +20,27 @@ def Temp(y):
         else : return -2*(y - 71e3)*1e-3 - 58.5
     return aux(y) + 273.15
 
-def rho_air(y,P):
-    y = int(y)
-    M_air = 28.956 #! Check this data
-    R = 8.314
-    return P * M_air / (R * Temp(y))
+# Calcul de la pression
+def calcul_pression(Y,y):
+	M = 28.956 #g/mol
+	R = 8.314e3
+	return np.array([-Y[0] * M * g / (R * Temp(y))])
 
-def k(y,P):
+z = np.linspace(0,150000,N)
+P = odeint(calcul_pression,np.array([1e5]),z)
+
+def rho_air(y):
+    y = int(y)
+    M_air = 28.956
+    R = 8.314
+    return P[y][0] * M_air / (R * Temp(y))
+
+def k(y):
     r1 = 6.4 / 2
     r2 = 8.6 / 2
     S = np.pi * (r1**2 + r2**2)
     Cx = 0.02
-    return 1/2 * rho_air(y,P) * Cx * S
+    return 1/2 * rho_air(y) * Cx * S
 
 
 def calc (Y,t) :
@@ -110,22 +109,17 @@ x = np.array ([sol[i][3] for i in range (n)])
 y = np.array ([sol[i][4] for i in range (n)])
 m = np.array ([sol[i][2] for i in range (n)])
 
-# y1 = np.linspace(0,max(y),N)
-# P = odeint(test,np.array([1e5]),y1)
-
-
 #Tracé
-# x, yc = crop(x, y)
+x, y = crop(x, y)
 t, v = crop(t, v)
 
 
 plt.figure()
-# plt.plot(y,P)
+plt.plot(z,P, ls="None", marker="x", label="Pression")
 plt.xlabel('Altitude en m')
 plt.ylabel('Pression en Pa')
-plt.figure()
-plt.plot(x,y)
-plt.xlabel('longitude en m')
-plt.ylabel('Altitude en m')
-
+# plt.figure()
+# plt.plot(x,y)
+# plt.xlabel('Longueur en m')
+# plt.ylabel('Altitude en m')
 plt.show()
