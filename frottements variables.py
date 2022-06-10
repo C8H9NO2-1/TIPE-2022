@@ -20,12 +20,6 @@ def Temp(y):
         else : return -2*(y - 71e3)*1e-3 - 58.5
     return aux(y) + 273.15
 
-def rho_air(y,P):
-    y = int(y)
-    M_air = 28.956
-    R = 8.314
-    
-
 
 def calc (Y,t) :
 
