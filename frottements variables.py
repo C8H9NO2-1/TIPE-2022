@@ -29,7 +29,7 @@ def calc (Y,t) :
     
     g = 9.8
     M = 28.956 #g/mol
-    R = 8.314e3
+    R = 8.314
 
 
     #Coefficient de frottements
@@ -37,7 +37,7 @@ def calc (Y,t) :
     r2 = 8.6 / 2
     S = np.pi * (r1**2 + r2**2)
     Cx = 0.02
-    k = 1/2 * Y[5] * M / (R * Temp(Y[4])) * Cx * S
+    k = .5 * Y[5] * M*1e3 / (R * Temp(Y[4])) * Cx * S
 
 
     #Y[0] => Vitesse selon x
@@ -110,7 +110,7 @@ t,v,x,y,P = crop(t,v,x,y,P)
 #Tracé
 
 plt.figure()
-plt.plot(x,y)
-plt.xlabel('Longueur en m')
+plt.plot(x, y)
 plt.ylabel('Altitude en m')
+plt.xlabel('Longueur en m')
 plt.show()
