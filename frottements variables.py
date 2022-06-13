@@ -20,18 +20,18 @@ def Temp(y):
         else : return -2*(y - 71e3)*1e-3 - 58.5
     return aux(y) + 273.15
 
-def angle(y):
+def angle_phase1(y):
     def aux(y):
-        if y < 3e3: return -5 - 10 * y / 3e3
-        elif y < 10e3: return -15 - 15 * (y - 3e3) / 10e3
-        elif y < 30e3: return -45 - 15 * (y - 10e3) / 30e3
-        else: return -60 - 30 * (y - 30e3) / 80e3
+        if y < 10e3: return -5
+        elif y < 30e3: return -5 - 5 * (y - 10e3) / 20e3
+        elif y < 60e3: return -10 - 20 * (y - 30e3) / 30e3
+        else: return -30 - 60 * (y - 60e3) / 20e3
     return aux(y) * np.pi / 180
 
 def calc (Y,t) :
 
     D = 518*9 #Débit massique
-    alpha = angle(Y[4])
+    alpha = angle_phase1(Y[4])
     # print(alpha * 180 / np.pi) 
     F = 2000e3*9 #Poussée des moteurs
     
