@@ -20,17 +20,30 @@ def Temp(y):
         else : return -2*(y - 71e3)*1e-3 - 58.5
     return aux(y) + 273.15
 
+def angle(y):
+    def aux(y):
+        if y < 3e3: return -5 - 10 * y / 3e3
+        elif y < 10e3: return -15 - 15 * (y - 3e3) / 10e3
+        elif y < 30e3: return -45 - 15 * (y - 10e3) / 30e3
+        else: return -60 - 30 * (y - 30e3) / 80e3
+    return aux(y) * np.pi / 180
 
 def calc (Y,t) :
 
     D = 518*9 #Débit massique
-    alpha = -10*np.pi/180
+    alpha = angle(Y[4])
+    # print(alpha * 180 / np.pi) 
     F = 2000e3*9 #Poussée des moteurs
     
     g = 9.8
     M = 28.956 #g/mol
     R = 8.314
 
+    #? Différentes masses
+    m_booster = 170e3 #kg
+    
+    decouplage = False
+    
 
     #Coefficient de frottements
     r1 = 6.4 / 2
@@ -72,7 +85,6 @@ def calc (Y,t) :
         dx = Y[0]
         dP = (-Y[5] * M * g / (R * Temp(Y[4])))*Y[1]
 
-
     if Y[4] < 0 : #On touche le sol
 
         dvx = 0
@@ -113,4 +125,5 @@ plt.figure()
 plt.plot(x, y)
 plt.ylabel('Altitude en m')
 plt.xlabel('Longueur en m')
+plt.grid()
 plt.show()
