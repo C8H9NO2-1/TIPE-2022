@@ -22,10 +22,10 @@ def Temp(y):
 
 def angle_phase1(y):
     def aux(y):
-        if y < 10e3: return -5-5*y/10e3
-        elif y < 30e3: return -10 - 20 * (y - 10e3) / 20e3
-        elif y < 60e3: return -30 - 40 * (y - 30e3) / 30e3
-        else: return -70 - 20 * (y - 60e3) / 20e3
+        if y < 10e3: return -5 - 10 * y / 10e3
+        elif y < 30e3: return - 15 - 20 * (y - 10e3) / 20e3
+        elif y < 60e3: return - 35 - 40 * (y - 30e3) / 30e3
+        else: return -75 - 15 * (y - 60e3) / 20e3
     return aux(y) * np.pi / 180
 
 def calc_1 (Y,t) :
@@ -103,7 +103,8 @@ def calc_1 (Y,t) :
 
 def crop (t,vx,vy,x,y,P) : #On redimensionne les tableaux lorsque les valeurs deviennent constantes
     for i in range (len(t)-1) :
-        if y[i]==y[i+1] : return t[:i], vx[:i],vy[:i], x[:i], y[:i], P[:i]
+        if int(y[i] * 100)==int(y[i+1] * 100) : return t[:i], vx[:i],vy[:i], x[:i], y[:i], P[:i]
+    return t, vx, vy, x, y, P
 
 
 Y0_1 = np.array([0,0,1807240,0,0,1e5]) #Conditions initiales
@@ -121,14 +122,22 @@ P = np.array ([sol[i][5] for i in range (n_1)])
 t,vx,vy,x,y,P = crop(t,vx,vy,x,y,P)
 v = np.sqrt(vx**2+vy**2)
 
+#!=============================================== PHASE II ===============================================
+
+def angle_phase2(vy):
+    def aux(vy):
+        if vy > 0: return -70
+        else: return -110
+    return aux(vy) * np.pi / 180
+
 Y0_2 = np.array([vx[-1],vy[-1],380e3,x[-1],y[-1],P[-1]])
 
 def calc_2 (Y,t) :
 
-    D = 518*9 #Débit massique
-    alpha = -10*np.pi/180
+    D = 518*2 #Débit massique
+    alpha = angle_phase2(Y[1])
     # print(alpha * 180 / np.pi) 
-    F = 0 #Poussée des moteurs
+    F = 2000e3 * 2 #Poussée des moteurs
     
     g = 9.8
     M = 28.956 #g/mol
@@ -145,7 +154,9 @@ def calc_2 (Y,t) :
     #Force de portance 
     A = 461 #m2
     Cy = 0.1
-    Fy = .5 * rho_air * A * Cy * (Y[0]**2 + Y[1]**2)
+    Fp = .5 * rho_air * A * Cy * (Y[0]**2 + Y[1]**2) # Portance
+    
+    phi = np.arccos(Y[0] / np.sqrt(Y[0]**2 + Y[1]**2)) # Angle entre le vecteur vitesse et le repère (Cf feuille d'explication)
 
     #Y[0] => Vitesse selon x
     #Y[1] => Vitesse selon y
@@ -159,8 +170,26 @@ def calc_2 (Y,t) :
     #dy => vitesse selon y
     #dx => vitesse selon x
     #dP => dérivée de la Pression
+    
+    if Y[2] > 160e3:
 
-
+        dvx = (-F * np.sin(alpha) - k * np.sqrt(Y[0]**2 + Y[1]**2) * Y[0] - np.sin(phi) * Fp) / Y[2]
+        dvy = (F * np.cos(alpha) - k * np.sqrt(Y[0]**2 + Y[1]**2) * Y[1] + np.cos(phi) * Fp) / Y[2] - g
+        dm = -D
+        dy = Y[1]
+        dx = Y[0]
+        dP = (-Y[5] * M * g / (R * Temp(Y[4]))) * Y[1]
+        
+    else:
+        
+        dvx = (- k * np.sqrt(Y[0]**2 + Y[1]**2) * Y[0] - np.sin(phi) * Fp) / Y[2]
+        dvy = (- k * np.sqrt(Y[0]**2 + Y[1]**2) * Y[1] + np.cos(phi) * Fp) / Y[2] - g
+        dm = 0
+        dy = Y[1]
+        dx = Y[0]
+        dP = (-Y[5] * M * g / (R * Temp(Y[4]))) * Y[1]
+        
+        
     if Y[4] < 0 : #On touche le sol
     
         dvx = 0
@@ -169,16 +198,6 @@ def calc_2 (Y,t) :
         dy = 0
         dx = 0
         dP = 0
-    
-    
-    else : 
-
-        dvx = (-F*np.sin(alpha) - k*np.sqrt(Y[0]**2 + Y[1]**2)*Y[0] - np.sin(alpha) * Fy)/Y[2]
-        dvy = (F*np.cos(alpha) - k*np.sqrt(Y[0]**2 + Y[1]**2)*Y[1]+np.cos(alpha)*Fy)/Y[2] - g
-        dm = 0
-        dy = Y[1]
-        dx = Y[0]
-        dP = (-Y[5] * M * g / (R * Temp(Y[4])))*Y[1]
 
 
     return np.array([dvx, dvy, dm, dx, dy, dP])
@@ -187,7 +206,7 @@ def calc_2 (Y,t) :
 sol_2 = odeint(calc_2,Y0_2,t) #résolution de(s) équa. diff.
 n_2 = len(sol_2)
 
-t_2 = t+t
+t_2 = t
 
 #Extraction des données
 vx_2 = np.array([sol_2[i][0] for i in range (n_2)])
@@ -198,14 +217,14 @@ m_2 = np.array ([sol_2[i][2] for i in range (n_2)])
 P_2 = np.array ([sol_2[i][5] for i in range (n_2)])
 
 t_2,vx_2,vy_2,x_2,y_2,P_2 = crop(t_2,vx_2,vy_2,x_2,y_2,P_2)
-v_2 = np.sqrt(vx_2**2+vy_2**2)
+# v_2 = np.sqrt(vx_2**2+vy_2**2)
 
 #Tracé
 plt.figure()
 # plt.plot(np.concatenate((x,x_2)), np.concatenate ((y, y_2)))
 plt.plot(x_2, y_2)
-plt.plot(x,y)
+plt.plot(x, y)
 plt.ylabel('Altitude en m')
-plt.xlabel('Longueur en m')
+plt.xlabel('Longueur en km')
 plt.grid()
 plt.show()
