@@ -167,7 +167,7 @@ def calc_2 (Y,t) :
 
         dvx = (-F*np.sin(alpha) - k*np.sqrt(Y[0]**2*Y[1]**2)*Y[0])/Y[2]
         dvy = (F*np.cos(alpha) - k*np.sqrt(Y[0]**2*Y[1]**2)*Y[1]+np.cos(alpha)*Fy)/Y[2] - g
-        dm = -D
+        dm = 0
         dy = Y[1]
         dx = Y[0]
         dP = (-Y[5] * M * g / (R * Temp(Y[4])))*Y[1]
