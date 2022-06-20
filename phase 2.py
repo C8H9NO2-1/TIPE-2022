@@ -20,10 +20,18 @@ def Temp(y):
         else : return -2*(y - 71e3)*1e-3 - 58.5
     return aux(y) + 273.15
 
+def angle_phase1(y):
+    def aux(y):
+        if y < 10e3: return -5-5*y/10e3
+        elif y < 30e3: return -10 - 20 * (y - 10e3) / 20e3
+        elif y < 60e3: return -30 - 40 * (y - 30e3) / 30e3
+        else: return -70 - 20 * (y - 60e3) / 20e3
+    return aux(y) * np.pi / 180
+
 def calc_1 (Y,t) :
 
     D = 518*9 #Débit massique
-    alpha = -10*np.pi/180
+    alpha = angle_phase1(Y[4])
     # print(alpha * 180 / np.pi) 
     F = 2000e3*9 #Poussée des moteurs
     
@@ -61,7 +69,7 @@ def calc_1 (Y,t) :
         dx = 0
         dP = 0
 
-    if Y[2] > 307240 : #Tant qu'on a du carburant
+    elif Y[2] > 307240 : #Tant qu'on a du carburant
 
         dvx = (-F*np.sin(alpha) - k*np.sqrt(Y[0]**2 + Y[1]**2)*Y[0])/Y[2]
         dvy = (F*np.cos(alpha) - k*np.sqrt(Y[0]**2 + Y[1]**2)*Y[1])/Y[2] - g
@@ -115,8 +123,6 @@ v = np.sqrt(vx**2+vy**2)
 
 Y0_2 = np.array([vx[-1],vy[-1],380e3,x[-1],y[-1],P[-1]])
 
-print ([vx[-1],vy[-1],380e3,x[-1],y[-1],P[-1]])
-
 def calc_2 (Y,t) :
 
     D = 518*9 #Débit massique
@@ -167,8 +173,8 @@ def calc_2 (Y,t) :
     
     else : 
 
-        dvx = (-F*np.sin(alpha) - k*np.sqrt(Y[0]**2*Y[1]**2)*Y[0])/Y[2]
-        dvy = (F*np.cos(alpha) - k*np.sqrt(Y[0]**2*Y[1]**2)*Y[1]+np.cos(alpha)*Fy)/Y[2] - g
+        dvx = (-F*np.sin(alpha) - k*np.sqrt(Y[0]**2 + Y[1]**2)*Y[0] - np.sin(alpha) * Fy)/Y[2]
+        dvy = (F*np.cos(alpha) - k*np.sqrt(Y[0]**2 + Y[1]**2)*Y[1]+np.cos(alpha)*Fy)/Y[2] - g
         dm = 0
         dy = Y[1]
         dx = Y[0]
@@ -186,18 +192,19 @@ t_2 = t+t
 #Extraction des données
 vx_2 = np.array([sol_2[i][0] for i in range (n_2)])
 vy_2 = np.array([sol_2[i][1] for i in range (n_2)])
-v_2 = np.sqrt(vx_2**2+vy_2**2)
 x_2 = np.array ([sol_2[i][3] for i in range (n_2)])
 y_2 = np.array ([sol_2[i][4] for i in range (n_2)])
 m_2 = np.array ([sol_2[i][2] for i in range (n_2)])
 P_2 = np.array ([sol_2[i][5] for i in range (n_2)])
 
 t_2,vx_2,vy_2,x_2,y_2,P_2 = crop(t_2,vx_2,vy_2,x_2,y_2,P_2)
+v_2 = np.sqrt(vx_2**2+vy_2**2)
 
 #Tracé
 plt.figure()
 # plt.plot(np.concatenate((x,x_2)), np.concatenate ((y, y_2)))
-plt.plot(x_2,y_2)
+plt.plot(x_2, y_2)
+plt.plot(x,y)
 plt.ylabel('Altitude en m')
 plt.xlabel('Longueur en m')
 plt.grid()
