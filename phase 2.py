@@ -93,9 +93,9 @@ def calc_1 (Y,t) :
     return np.array([dvx, dvy, dm, dx, dy, dP])
 
 
-def crop (t,v,x,y,P) : #On redimensionne les tableaux lorsque les valeurs deviennent constantes
+def crop (t,vx,vy,x,y,P) : #On redimensionne les tableaux lorsque les valeurs deviennent constantes
     for i in range (len(t)-1) :
-        if y[i]==y[i+1] : return t[:i], v[:i], x[:i], y[:i], P[:i]
+        if y[i]==y[i+1] : return t[:i], vx[:i],vy[:i], x[:i], y[:i], P[:i]
 
 
 Y0_1 = np.array([0,0,1807240,0,0,1e5]) #Conditions initiales
@@ -105,15 +105,17 @@ n_1 = len(sol)
 #Extraction des données
 vx = np.array([sol[i][0] for i in range (n_1)])
 vy = np.array([sol[i][1] for i in range (n_1)])
-v = np.sqrt(vx**2+vy**2)
 x = np.array ([sol[i][3] for i in range (n_1)])
 y = np.array ([sol[i][4] for i in range (n_1)])
 m = np.array ([sol[i][2] for i in range (n_1)])
 P = np.array ([sol[i][5] for i in range (n_1)])
 
-t,v,x,y,P = crop(t,v,x,y,P)
+t,vx,vy,x,y,P = crop(t,vx,vy,x,y,P)
+v = np.sqrt(vx**2+vy**2)
 
 Y0_2 = np.array([vx[-1],vy[-1],380e3,x[-1],y[-1],P[-1]])
+
+print ([vx[-1],vy[-1],380e3,x[-1],y[-1],P[-1]])
 
 def calc_2 (Y,t) :
 
@@ -190,7 +192,7 @@ y_2 = np.array ([sol_2[i][4] for i in range (n_2)])
 m_2 = np.array ([sol_2[i][2] for i in range (n_2)])
 P_2 = np.array ([sol_2[i][5] for i in range (n_2)])
 
-t_2,v_2,x_2,y_2,P_2 = crop(t_2,v_2,x_2,y_2,P_2)
+t_2,vx_2,vy_2,x_2,y_2,P_2 = crop(t_2,vx_2,vy_2,x_2,y_2,P_2)
 
 #Tracé
 plt.figure()
