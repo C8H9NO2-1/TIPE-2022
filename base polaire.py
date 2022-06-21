@@ -4,7 +4,10 @@ from scipy.integrate import odeint
 
 duree = 3000
 N = 400
+
+# Constantes du problème
 g = 9.8
+RT = 6371e3 # rayon de la Terre en m
 
 
 t = np.linspace(0,duree,N) #tableau du temps
@@ -56,45 +59,38 @@ def calc_1 (Y,t) :
 
     #dv => acceleration
     #dm => dérivée de la masse
-    #dy => vitesse selon y
     #dx => vitesse selon x
+    #dy => vitesse selon y
     #dP => dérivée de la Pression
 
-    if Y[4] > 76500 : 
-    
-        dvx = 0
-        dvy = 0
-        dm = 0
-        dy = 0
-        dx = 0
-        dP = 0
+    v = np.sqrt(Y[0]**2 + Y[1]**2) # Norme de la vitesse
 
-    elif Y[2] > 307240 : #Tant qu'on a du carburant
+    if Y[2] > 307240 : #Tant qu'on a du carburant
 
-        dvx = (-F*np.sin(alpha) - k*np.sqrt(Y[0]**2 + Y[1]**2)*Y[0])/Y[2]
-        dvy = (F*np.cos(alpha) - k*np.sqrt(Y[0]**2 + Y[1]**2)*Y[1])/Y[2] - g
+        dvx = (-F*np.sin(alpha) - k*v*Y[0])/Y[2]
+        dvy = (F*np.cos(alpha) - k*v*Y[1])/Y[2] - g
         dm = -D
-        dy = Y[1]
         dx = Y[0]
+        dy = Y[1]
         dP = (-Y[5] * M * g / (R * Temp(Y[4])))*Y[1]
         
 
     else : #Il n'y a plus de carburant
     
-        dvx = -k*np.sqrt(Y[0]**2 + Y[1]**2)*Y[0]/Y[2]
-        dvy = - k*np.sqrt(Y[0]**2 + Y[1]**2)*Y[1]/Y[2] - g
+        dvx = -k*v*Y[0]/Y[2]
+        dvy = - k*v*Y[1]/Y[2] - g
         dm = 0
-        dy = Y[1]
         dx = Y[0]
+        dy = Y[1]
         dP = (-Y[5] * M * g / (R * Temp(Y[4])))*Y[1]
 
-    if Y[4] < 0 : #On touche le sol
+    if Y[4] > 76500 : # Lorsque l'on n'a plus de carburant
 
         dvx = 0
         dvy = 0
         dm = 0
-        dy = 0
         dx = 0
+        dy = 0
         dP = 0
         
 
@@ -130,12 +126,12 @@ def angle_phase2(vy):
         else: return -110
     return aux(vy) * np.pi / 180
 
-Y0_2 = np.array([vx[-1],vy[-1],380e3,x[-1],y[-1],P[-1]])
+Y0_2 = np.array([vy[-1], vx[-1] / (y[-1] + RT), 380e3, y[-1] + RT, np.arctan(x[-1] / RT), 1])
 
 def calc_2 (Y,t) :
 
     D = 518*2 #Débit massique
-    alpha = angle_phase2(Y[1])
+    alpha = -10 * np.pi / 180
     # print(alpha * 180 / np.pi) 
     F = 2000e3 * 2 #Poussée des moteurs
     
@@ -143,6 +139,9 @@ def calc_2 (Y,t) :
     M = 28.956 #g/mol
     R = 8.314
     rho_air = Y[5] * M*1e3 / (R * Temp(Y[4]))
+    
+    # Norme de la vitesse
+    v = np.sqrt(Y[0]**2 + Y[1]**2) 
     
     #Coefficient de frottements
     r1 = 6.4 / 2
@@ -154,76 +153,78 @@ def calc_2 (Y,t) :
     #Force de portance 
     A = 461 #m2
     Cy = 0.1
-    Fp = .5 * rho_air * A * Cy * (Y[0]**2 + Y[1]**2) # Portance
+    Fp = .5 * rho_air * A * Cy * v**2 # Portance
     
-    phi = np.arccos(Y[0] / np.sqrt(Y[0]**2 + Y[1]**2)) # Angle entre le vecteur vitesse et le repère (Cf feuille d'explication)
+    phi = np.arccos(Y[0] / v) # Angle entre le vecteur vitesse et le repère (Cf feuille d'explication)
 
-    #Y[0] => Vitesse selon x
-    #Y[1] => Vitesse selon y
+    #Y[0] => dr
+    #Y[1] => dθ
     #Y[2] => masse m
-    #Y[3] => x
-    #Y[4] => y
+    #Y[3] => r
+    #Y[4] => θ
     #Y[5] => Pression P
 
     #dv => acceleration
     #dm => dérivée de la masse
-    #dy => vitesse selon y
-    #dx => vitesse selon x
-    #dP => dérivée de la Pression
+    #dr => vitesse selon r
+    #dθ => vitesse angulaire
+    #dP => dérivée de la pression
     
     if Y[2] > 160e3:
 
-        dvx = (-F * np.sin(alpha) - k * np.sqrt(Y[0]**2 + Y[1]**2) * Y[0] - np.sin(phi) * Fp) / Y[2]
-        dvy = (F * np.cos(alpha) - k * np.sqrt(Y[0]**2 + Y[1]**2) * Y[1] + np.cos(phi) * Fp) / Y[2] - g
+        ddr = (F * np.cos(alpha) - k * v * Y[0] - np.sin(phi) * Fp) / Y[2] + Y[3] * Y[1]**2 - g
+        ddθ = ((F * np.sin(alpha) - k * v * Y[1] * Y[3] + np.cos(phi) * Fp) / Y[2] - 2 * Y[0] * Y[1]) / Y[3]
         dm = -D
-        dy = Y[1]
-        dx = Y[0]
-        dP = (-Y[5] * M * g / (R * Temp(Y[4]))) * Y[1]
+        dr = Y[0]
+        dθ = Y[1]
+        dP = 0
         
     else:
-        
-        dvx = (- k * np.sqrt(Y[0]**2 + Y[1]**2) * Y[0] - np.sin(phi) * Fp) / Y[2]
-        dvy = (- k * np.sqrt(Y[0]**2 + Y[1]**2) * Y[1] + np.cos(phi) * Fp) / Y[2] - g
+        ddr = (- k * v * Y[0] - np.sin(phi) * Fp) / Y[2] + Y[3] * Y[1]**2 - g
+        ddθ = ((- k * v * Y[1] * Y[3] + np.cos(phi) * Fp) / Y[2] - 2 * Y[0] * Y[1]) / Y[3]
         dm = 0
-        dy = Y[1]
-        dx = Y[0]
-        dP = (-Y[5] * M * g / (R * Temp(Y[4]))) * Y[1]
+        dr = Y[0]
+        dθ = Y[1]
+        dP = 0
         
-    if Y[4] < 0 : #On touche le sol
+    if Y[3] < RT : #On touche le sol
     
-        dvx = 0
-        dvy = 0
+        ddr = 0
+        ddθ = 0
         dm = 0
-        dy = 0
-        dx = 0
+        dr = 0
+        dθ = 0
         dP = 0
 
 
-    return np.array([dvx, dvy, dm, dx, dy, dP])
+    return np.array([ddr, ddθ, dm, dr, dθ, dP])
 
 
-sol_2 = odeint(calc_2,Y0_2,t) #résolution de(s) équa. diff.
+sol_2 = odeint(calc_2,Y0_2,t) # résolution de(s) équa. diff.
 n_2 = len(sol_2)
 
 t_2 = t
 
-#Extraction des données
-vx_2 = np.array([sol_2[i][0] for i in range (n_2)])
-vy_2 = np.array([sol_2[i][1] for i in range (n_2)])
-x_2 = np.array ([sol_2[i][3] for i in range (n_2)])
-y_2 = np.array ([sol_2[i][4] for i in range (n_2)])
+# Extraction des données
+vr_2 = np.array([sol_2[i][0] for i in range (n_2)])
+vθ_2 = np.array([sol_2[i][1] for i in range (n_2)])
+r_2 = np.array ([sol_2[i][3] for i in range (n_2)])
+θ_2 = np.array ([sol_2[i][4] for i in range (n_2)])
 m_2 = np.array ([sol_2[i][2] for i in range (n_2)])
 P_2 = np.array ([sol_2[i][5] for i in range (n_2)])
 
-t_2,vx_2,vy_2,x_2,y_2,P_2 = crop(t_2,vx_2,vy_2,x_2,y_2,P_2)
+x_2 = θ_2 * RT
+y_2 = r_2 - RT
+
+t_2,vr_2,vθ_2,x_2,y_2,P_2 = crop(t_2,vr_2,vθ_2,x_2,y_2,P_2)
 # v_2 = np.sqrt(vx_2**2+vy_2**2)
 
 #Tracé
 plt.figure()
 # plt.plot(np.concatenate((x,x_2)), np.concatenate ((y, y_2)))
-plt.plot(x_2, y_2)
+plt.plot(x_2[:-3], y_2[:-3], marker='x', ls='none')
 plt.plot(x, y)
 plt.ylabel('Altitude en m')
-plt.xlabel('Longueur en km')
+plt.xlabel('Longueur en m')
 plt.grid()
 plt.show()
