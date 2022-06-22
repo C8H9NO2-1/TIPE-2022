@@ -37,7 +37,7 @@ def calc (Y,t) :
     F = 2000e3*9 #Poussée des moteurs
     
     g = 9.8
-    M = 28.956 #g/mol
+    M = 28.956e-3 #g/mol
     R = 8.314
 
     #Coefficient de frottements
@@ -45,7 +45,7 @@ def calc (Y,t) :
     r2 = 8.6 / 2
     S = np.pi * (r1**2 + r2**2)
     Cx = 0.02
-    k = .5 # Y[5] * M*1e3 / (R * Temp(Y[4])) * Cx * S
+    k = Y[5] * M*1e3 / (R * Temp(Y[4])) * Cx * S
 
 
     #?Y[0] => Vitesse selon x
@@ -68,7 +68,7 @@ def calc (Y,t) :
         dm = -D
         dy = Y[1]
         dx = Y[0]
-        dP = (-Y[5] * M * g / (R * Temp(Y[4])))*Y[1]
+        dP = (-Y[5] * M * g / (R * Temp(Y[4]))) * abs(Y[1])
         
 
     else : #Il n'y a plus de carburant
@@ -78,7 +78,7 @@ def calc (Y,t) :
         dm = 0
         dy = Y[1]
         dx = Y[0]
-        dP = (-Y[5] * M * g / (R * Temp(Y[4])))*Y[1]
+        dP = (-Y[5] * M * g / (R * Temp(Y[4]))) * abs(Y[1])
 
     if Y[4] < 0 : #On touche le sol
 

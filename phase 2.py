@@ -36,7 +36,7 @@ def calc_1 (Y,t) :
     F = 2000e3*9 #Poussée des moteurs
     
     g = 9.8
-    M = 28.956 #g/mol
+    M = 28.956e-3 #g/mol
     R = 8.314
 
     #Coefficient de frottements
@@ -135,12 +135,12 @@ Y0_2 = np.array([vx[-1],vy[-1],380e3,x[-1],y[-1],P[-1]])
 def calc_2 (Y,t) :
 
     D = 518*2 #Débit massique
-    alpha = angle_phase2(Y[1])
+    alpha = -10 * np.pi / 180
     # print(alpha * 180 / np.pi) 
     F = 2000e3 * 2 #Poussée des moteurs
     
     g = 9.8
-    M = 28.956 #g/mol
+    M = 28.956e-3 #g/mol
     R = 8.314
     rho_air = Y[5] * M*1e3 / (R * Temp(Y[4]))
     
@@ -170,6 +170,8 @@ def calc_2 (Y,t) :
     #dy => vitesse selon y
     #dx => vitesse selon x
     #dP => dérivée de la Pression
+    
+    if Y[5] < 0: Y[5] = 0 # Si la pression est négative, on l'annule
     
     if Y[2] > 160e3:
 
@@ -220,7 +222,6 @@ t_2,vx_2,vy_2,x_2,y_2,P_2 = crop(t_2,vx_2,vy_2,x_2,y_2,P_2)
 
 #Tracé
 plt.figure()
-# plt.plot(np.concatenate((x,x_2)), np.concatenate ((y, y_2)))
 plt.plot(x_2, y_2)
 plt.plot(x, y)
 plt.ylabel('Altitude en m')

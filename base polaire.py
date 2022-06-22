@@ -6,6 +6,8 @@ duree = 3000
 N = 400
 
 # Constantes du problème
+G = 6.67e-11
+MT = 5.972e24
 g = 9.8
 RT = 6371e3 # rayon de la Terre en m
 
@@ -39,7 +41,7 @@ def calc_1 (Y,t) :
     F = 2000e3*9 #Poussée des moteurs
     
     g = 9.8
-    M = 28.956 #g/mol
+    M = 28.956e-3 #g/mol
     R = 8.314
 
     #Coefficient de frottements
@@ -72,7 +74,7 @@ def calc_1 (Y,t) :
         dm = -D
         dx = Y[0]
         dy = Y[1]
-        dP = (-Y[5] * M * g / (R * Temp(Y[4])))*Y[1]
+        dP = (-Y[5] * M * g / (R * Temp(Y[4]))) * Y[1]
         
 
     else : #Il n'y a plus de carburant
@@ -82,7 +84,7 @@ def calc_1 (Y,t) :
         dm = 0
         dx = Y[0]
         dy = Y[1]
-        dP = (-Y[5] * M * g / (R * Temp(Y[4])))*Y[1]
+        dP = (-Y[5] * M * g / (R * Temp(Y[4]))) * Y[1]
 
     if Y[4] > 76500 : # Lorsque l'on n'a plus de carburant
 
@@ -95,7 +97,6 @@ def calc_1 (Y,t) :
         
 
     return np.array([dvx, dvy, dm, dx, dy, dP])
-
 
 def crop (t,vx,vy,x,y,P) : #On redimensionne les tableaux lorsque les valeurs deviennent constantes
     for i in range (len(t)-1) :
@@ -120,6 +121,8 @@ v = np.sqrt(vx**2+vy**2)
 
 #!=============================================== PHASE II ===============================================
 
+t_2 = np.linspace(t[-1],duree + t[-1],N) #tableau du temps
+
 def angle_phase2(vy):
     def aux(vy):
         if vy > 0: return -70
@@ -131,12 +134,13 @@ Y0_2 = np.array([vy[-1], vx[-1] / (y[-1] + RT), 380e3, y[-1] + RT, np.arctan(x[-
 def calc_2 (Y,t) :
 
     D = 518*2 #Débit massique
-    alpha = -10 * np.pi / 180
+    alpha = 0 * np.pi / 180
     # print(alpha * 180 / np.pi) 
     F = 2000e3 * 2 #Poussée des moteurs
+    F = 0
     
     g = 9.8
-    M = 28.956 #g/mol
+    M = 28.956e-3 #g/mol
     R = 8.314
     rho_air = Y[5] * M*1e3 / (R * Temp(Y[4]))
     
@@ -149,11 +153,13 @@ def calc_2 (Y,t) :
     S = np.pi * (r1**2 + r2**2)
     Cx = 0.02
     k = .5 * rho_air * Cx * S
+    # k = 0
     
     #Force de portance 
     A = 461 #m2
     Cy = 0.1
     Fp = .5 * rho_air * A * Cy * v**2 # Portance
+    Fp = 0
     
     phi = np.arccos(Y[0] / v) # Angle entre le vecteur vitesse et le repère (Cf feuille d'explication)
 
@@ -171,24 +177,22 @@ def calc_2 (Y,t) :
     #dP => dérivée de la pression
     
     if Y[2] > 160e3:
-
-        ddr = (F * np.cos(alpha) - k * v * Y[0] - np.sin(phi) * Fp) / Y[2] + Y[3] * Y[1]**2 - g
+        ddr = (F * np.cos(alpha) - k * v * Y[0] - np.sin(phi) * Fp) / Y[2] + Y[3] * Y[1]**2 - G * MT / Y[3]**2
         ddθ = ((F * np.sin(alpha) - k * v * Y[1] * Y[3] + np.cos(phi) * Fp) / Y[2] - 2 * Y[0] * Y[1]) / Y[3]
         dm = -D
         dr = Y[0]
         dθ = Y[1]
-        dP = 0
+        dP = (-Y[5] * M * (G * MT / Y[3]**2) / (R * Temp(Y[3] - RT))) * Y[0]
         
     else:
-        ddr = (- k * v * Y[0] - np.sin(phi) * Fp) / Y[2] + Y[3] * Y[1]**2 - g
+        ddr = (- k * v * Y[0] - np.sin(phi) * Fp) / Y[2] + Y[3] * Y[1]**2 - G * MT / Y[3]**2
         ddθ = ((- k * v * Y[1] * Y[3] + np.cos(phi) * Fp) / Y[2] - 2 * Y[0] * Y[1]) / Y[3]
         dm = 0
         dr = Y[0]
         dθ = Y[1]
-        dP = 0
+        dP = (-Y[5] * M * (G * MT / Y[3]**2) / (R * Temp(Y[3] - RT))) * Y[0]
         
     if Y[3] < RT : #On touche le sol
-    
         ddr = 0
         ddθ = 0
         dm = 0
@@ -200,14 +204,12 @@ def calc_2 (Y,t) :
     return np.array([ddr, ddθ, dm, dr, dθ, dP])
 
 
-sol_2 = odeint(calc_2,Y0_2,t) # résolution de(s) équa. diff.
+sol_2 = odeint(calc_2,Y0_2,t_2) # résolution de(s) équa. diff.
 n_2 = len(sol_2)
 
-t_2 = t
-
 # Extraction des données
-vr_2 = np.array([sol_2[i][0] for i in range (n_2)])
-vθ_2 = np.array([sol_2[i][1] for i in range (n_2)])
+dr_2 = np.array([sol_2[i][0] for i in range (n_2)])
+dθ_2 = np.array([sol_2[i][1] for i in range (n_2)])
 r_2 = np.array ([sol_2[i][3] for i in range (n_2)])
 θ_2 = np.array ([sol_2[i][4] for i in range (n_2)])
 m_2 = np.array ([sol_2[i][2] for i in range (n_2)])
@@ -216,14 +218,15 @@ P_2 = np.array ([sol_2[i][5] for i in range (n_2)])
 x_2 = θ_2 * RT
 y_2 = r_2 - RT
 
-t_2,vr_2,vθ_2,x_2,y_2,P_2 = crop(t_2,vr_2,vθ_2,x_2,y_2,P_2)
+t_2,dr_2,dθ_2,x_2,y_2,P_2 = crop(t_2,dr_2,dθ_2,x_2,y_2,P_2)
 # v_2 = np.sqrt(vx_2**2+vy_2**2)
+
+# print(t_2[-1])
 
 #Tracé
 plt.figure()
-# plt.plot(np.concatenate((x,x_2)), np.concatenate ((y, y_2)))
-plt.plot(x_2[:-3], y_2[:-3], marker='x', ls='none')
-plt.plot(x, y)
+plt.plot(x_2, y_2); plt.plot(x, y)
+# plt.plot(x_2, y_2, marker='x', ls='none');plt.plot(x, y, marker='x', ls='none')
 plt.ylabel('Altitude en m')
 plt.xlabel('Longueur en m')
 plt.grid()

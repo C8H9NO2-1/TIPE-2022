@@ -25,8 +25,8 @@ def Temp(z):
 
 ##Équation differentielle de la pression en fonction de l'altitude
 def P(Y,z):
-	M = 28.956 #g/mol
-	R = 8.314e3
+	M = 28.956e-3 #g/mol
+	R = 8.314
 	return np.array([-Y[0] * M * g(z) / (R * Temp(z))])
 
 ##Résolution de l'équation différentielle de la pression
