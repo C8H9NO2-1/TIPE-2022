@@ -45,7 +45,7 @@ def calc (Y,t) :
     r2 = 8.6 / 2
     S = np.pi * (r1**2 + r2**2)
     Cx = 0.02
-    k = Y[5] * M*1e3 / (R * Temp(Y[4])) * Cx * S
+    k = Y[5] * M / (R * Temp(Y[4])) * Cx * S
 
 
     #?Y[0] => Vitesse selon x

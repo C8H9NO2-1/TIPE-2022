@@ -44,7 +44,7 @@ def calc_1 (Y,t) :
     r2 = 8.6 / 2
     S = np.pi * (r1**2 + r2**2)
     Cx = 0.02
-    k = .5 * Y[5] * M*1e3 / (R * Temp(Y[4])) * Cx * S
+    k = .5 * Y[5] * M / (R * Temp(Y[4])) * Cx * S
 
 
     #Y[0] => Vitesse selon x
@@ -124,6 +124,8 @@ v = np.sqrt(vx**2+vy**2)
 
 #!=============================================== PHASE II ===============================================
 
+t_2 = np.linspace(t[-1],duree + t[-1],N) #tableau du temps
+
 def angle_phase2(vy):
     def aux(vy):
         if vy > 0: return -70
@@ -135,14 +137,17 @@ Y0_2 = np.array([vx[-1],vy[-1],380e3,x[-1],y[-1],P[-1]])
 def calc_2 (Y,t) :
 
     D = 518*2 #Débit massique
-    alpha = -10 * np.pi / 180
+    alpha = 0 * np.pi / 180
     # print(alpha * 180 / np.pi) 
     F = 2000e3 * 2 #Poussée des moteurs
     
     g = 9.8
     M = 28.956e-3 #g/mol
     R = 8.314
-    rho_air = Y[5] * M*1e3 / (R * Temp(Y[4]))
+    rho_air = Y[5] * M / (R * Temp(Y[4]))
+    
+    # Norme de la vitesse
+    v = np.sqrt(Y[0]**2 + Y[1]**2)
     
     #Coefficient de frottements
     r1 = 6.4 / 2
@@ -154,9 +159,10 @@ def calc_2 (Y,t) :
     #Force de portance 
     A = 461 #m2
     Cy = 0.1
-    Fp = .5 * rho_air * A * Cy * (Y[0]**2 + Y[1]**2) # Portance
+    Fp = .5 * rho_air * A * Cy * v**2 # Portance
+    # Fp = 0
     
-    phi = np.arccos(Y[0] / np.sqrt(Y[0]**2 + Y[1]**2)) # Angle entre le vecteur vitesse et le repère (Cf feuille d'explication)
+    phi = np.arccos(Y[0] / v) # Angle entre le vecteur vitesse et le repère (Cf feuille d'explication)
 
     #Y[0] => Vitesse selon x
     #Y[1] => Vitesse selon y
@@ -175,8 +181,8 @@ def calc_2 (Y,t) :
     
     if Y[2] > 160e3:
 
-        dvx = (-F * np.sin(alpha) - k * np.sqrt(Y[0]**2 + Y[1]**2) * Y[0] - np.sin(phi) * Fp) / Y[2]
-        dvy = (F * np.cos(alpha) - k * np.sqrt(Y[0]**2 + Y[1]**2) * Y[1] + np.cos(phi) * Fp) / Y[2] - g
+        dvx = (-F * np.sin(alpha) - k * v * Y[0] - np.sin(phi) * Fp) / Y[2]
+        dvy = (F * np.cos(alpha) - k * v * Y[1] + np.cos(phi) * Fp) / Y[2] - g
         dm = -D
         dy = Y[1]
         dx = Y[0]
@@ -184,8 +190,8 @@ def calc_2 (Y,t) :
         
     else:
         
-        dvx = (- k * np.sqrt(Y[0]**2 + Y[1]**2) * Y[0] - np.sin(phi) * Fp) / Y[2]
-        dvy = (- k * np.sqrt(Y[0]**2 + Y[1]**2) * Y[1] + np.cos(phi) * Fp) / Y[2] - g
+        dvx = (- k * v * Y[0] - np.sin(phi) * Fp) / Y[2]
+        dvy = (- k * v * Y[1] + np.cos(phi) * Fp) / Y[2] - g
         dm = 0
         dy = Y[1]
         dx = Y[0]
@@ -204,10 +210,8 @@ def calc_2 (Y,t) :
     return np.array([dvx, dvy, dm, dx, dy, dP])
 
 
-sol_2 = odeint(calc_2,Y0_2,t) #résolution de(s) équa. diff.
+sol_2 = odeint(calc_2,Y0_2,t_2) #résolution de(s) équa. diff.
 n_2 = len(sol_2)
-
-t_2 = t
 
 #Extraction des données
 vx_2 = np.array([sol_2[i][0] for i in range (n_2)])
@@ -218,7 +222,6 @@ m_2 = np.array ([sol_2[i][2] for i in range (n_2)])
 P_2 = np.array ([sol_2[i][5] for i in range (n_2)])
 
 t_2,vx_2,vy_2,x_2,y_2,P_2 = crop(t_2,vx_2,vy_2,x_2,y_2,P_2)
-# v_2 = np.sqrt(vx_2**2+vy_2**2)
 
 #Tracé
 plt.figure()

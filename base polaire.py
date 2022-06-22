@@ -49,7 +49,7 @@ def calc_1 (Y,t) :
     r2 = 8.6 / 2
     S = np.pi * (r1**2 + r2**2)
     Cx = 0.02
-    k = .5 * Y[5] * M*1e3 / (R * Temp(Y[4])) * Cx * S
+    k = .5 * Y[5] * M / (R * Temp(Y[4])) * Cx * S
 
 
     #Y[0] => Vitesse selon x
@@ -129,7 +129,7 @@ def angle_phase2(vy):
         else: return -110
     return aux(vy) * np.pi / 180
 
-Y0_2 = np.array([vy[-1], vx[-1] / (y[-1] + RT), 380e3, y[-1] + RT, np.arctan(x[-1] / RT), 1])
+Y0_2 = np.array([vy[-1], vx[-1] / (y[-1] + RT), 380e3, y[-1] + RT, np.arctan(x[-1] / RT), P[-1]])
 
 def calc_2 (Y,t) :
 
@@ -137,15 +137,15 @@ def calc_2 (Y,t) :
     alpha = 0 * np.pi / 180
     # print(alpha * 180 / np.pi) 
     F = 2000e3 * 2 #Poussée des moteurs
-    F = 0
+    # F = 0
     
     g = 9.8
     M = 28.956e-3 #g/mol
     R = 8.314
-    rho_air = Y[5] * M*1e3 / (R * Temp(Y[4]))
+    rho_air = Y[5] * M / (R * Temp(Y[4]))
     
     # Norme de la vitesse
-    v = np.sqrt(Y[0]**2 + Y[1]**2) 
+    v = np.sqrt(Y[0]**2 + (Y[3] * Y[1])**2) 
     
     #Coefficient de frottements
     r1 = 6.4 / 2
@@ -159,9 +159,9 @@ def calc_2 (Y,t) :
     A = 461 #m2
     Cy = 0.1
     Fp = .5 * rho_air * A * Cy * v**2 # Portance
-    Fp = 0
+    # Fp = 0
     
-    phi = np.arccos(Y[0] / v) # Angle entre le vecteur vitesse et le repère (Cf feuille d'explication)
+    phi = np.arccos(Y[3] * Y[1] / v) # Angle entre le vecteur vitesse et le repère (Cf feuille d'explication)
 
     #Y[0] => dr
     #Y[1] => dθ
@@ -176,17 +176,23 @@ def calc_2 (Y,t) :
     #dθ => vitesse angulaire
     #dP => dérivée de la pression
     
+    if Y[5] < 0: Y[5] = 0 # Si la pression est négative, on l'annule
+    
     if Y[2] > 160e3:
-        ddr = (F * np.cos(alpha) - k * v * Y[0] - np.sin(phi) * Fp) / Y[2] + Y[3] * Y[1]**2 - G * MT / Y[3]**2
-        ddθ = ((F * np.sin(alpha) - k * v * Y[1] * Y[3] + np.cos(phi) * Fp) / Y[2] - 2 * Y[0] * Y[1]) / Y[3]
+        ddr = (F * np.sin(alpha) - k * v * Y[0] + np.cos(phi) * Fp) / Y[2] + Y[3] * Y[1]**2 - G * MT / Y[3]**2
+        ddθ = ((F * np.cos(alpha) - k * v * Y[1] * Y[3] - np.sin(phi) * Fp) / Y[2] - 2 * Y[0] * Y[1]) / Y[3]
+        # ddr = (F * np.cos(alpha) - k * v * Y[0] + Fp) / Y[2] + Y[3] * Y[1]**2 - G * MT / Y[3]**2
+        # ddθ = ((F * np.sin(alpha) - k * v * Y[1] * Y[3]) / Y[2] - 2 * Y[0] * Y[1]) / Y[3]
         dm = -D
         dr = Y[0]
         dθ = Y[1]
         dP = (-Y[5] * M * (G * MT / Y[3]**2) / (R * Temp(Y[3] - RT))) * Y[0]
         
     else:
-        ddr = (- k * v * Y[0] - np.sin(phi) * Fp) / Y[2] + Y[3] * Y[1]**2 - G * MT / Y[3]**2
-        ddθ = ((- k * v * Y[1] * Y[3] + np.cos(phi) * Fp) / Y[2] - 2 * Y[0] * Y[1]) / Y[3]
+        ddr = (- k * v * Y[0] + np.cos(phi) * Fp) / Y[2] + Y[3] * Y[1]**2 - G * MT / Y[3]**2
+        ddθ = ((- k * v * Y[1] * Y[3] - np.sin(phi) * Fp) / Y[2] - 2 * Y[0] * Y[1]) / Y[3]
+        # ddr = (- k * v * Y[0] + Fp) / Y[2] + Y[3] * Y[1]**2 - G * MT / Y[3]**2
+        # ddθ = ((- k * v * Y[1] * Y[3]) / Y[2] - 2 * Y[0] * Y[1]) / Y[3]
         dm = 0
         dr = Y[0]
         dθ = Y[1]
@@ -218,13 +224,16 @@ P_2 = np.array ([sol_2[i][5] for i in range (n_2)])
 x_2 = θ_2 * RT
 y_2 = r_2 - RT
 
-t_2,dr_2,dθ_2,x_2,y_2,P_2 = crop(t_2,dr_2,dθ_2,x_2,y_2,P_2)
-# v_2 = np.sqrt(vx_2**2+vy_2**2)
+v_2 = np.sqrt(dr_2**2 + (r_2 * dθ_2)**2)
 
-# print(t_2[-1])
+t_2,dr_2,dθ_2,x_2,y_2,P_2 = crop(t_2,dr_2,dθ_2,x_2,y_2,P_2)
+
+print("\n==========\nTemps de la seconde phase: ", t_2[-1], "\n==========")
 
 #Tracé
 plt.figure()
+# plt.plot(y_2, P_2)
+# plt.plot(y, P)
 plt.plot(x_2, y_2); plt.plot(x, y)
 # plt.plot(x_2, y_2, marker='x', ls='none');plt.plot(x, y, marker='x', ls='none')
 plt.ylabel('Altitude en m')
