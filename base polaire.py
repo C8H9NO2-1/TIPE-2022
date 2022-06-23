@@ -41,7 +41,7 @@ def calc_1 (Y,t) :
     F = 2000e3*9 #Poussée des moteurs
     
     g = 9.8
-    M = 28.956e-3 #g/mol
+    M = 28.956e-3 #kg/mol
     R = 8.314
 
     #Coefficient de frottements
@@ -122,6 +122,7 @@ v = np.sqrt(vx**2+vy**2)
 #!=============================================== PHASE II ===============================================
 
 t_2 = np.linspace(t[-1],duree + t[-1],N) #tableau du temps
+t_21 = np.linspace(t[-1],duree + t[-1],N) #tableau du temps
 
 def angle_phase2(vy):
     def aux(vy):
@@ -133,16 +134,16 @@ Y0_2 = np.array([vy[-1], vx[-1] / (y[-1] + RT), 380e3, y[-1] + RT, np.arctan(x[-
 
 def calc_2 (Y,t) :
 
-    D = 518*2 #Débit massique
-    alpha = 0 * np.pi / 180
+    D = 518 * 2 #Débit massique
+    alpha = -90 * np.pi / 180
     # print(alpha * 180 / np.pi) 
     F = 2000e3 * 2 #Poussée des moteurs
     # F = 0
     
     g = 9.8
-    M = 28.956e-3 #g/mol
+    M = 28.956e-3 #kg/mol
     R = 8.314
-    rho_air = Y[5] * M / (R * Temp(Y[4]))
+    rho_air = Y[5] * M / (R * Temp(Y[3] - RT))
     
     # Norme de la vitesse
     v = np.sqrt(Y[0]**2 + (Y[3] * Y[1])**2) 
@@ -159,9 +160,9 @@ def calc_2 (Y,t) :
     A = 461 #m2
     Cy = 0.1
     Fp = .5 * rho_air * A * Cy * v**2 # Portance
-    # Fp = 0
+    Fp = 4.66e6
     
-    phi = np.arccos(Y[3] * Y[1] / v) # Angle entre le vecteur vitesse et le repère (Cf feuille d'explication)
+    phi = np.arcsin(Y[0] / v) # Angle entre le vecteur vitesse et le repère (Cf feuille d'explication)
 
     #Y[0] => dr
     #Y[1] => dθ
@@ -181,8 +182,6 @@ def calc_2 (Y,t) :
     if Y[2] > 160e3:
         ddr = (F * np.sin(alpha) - k * v * Y[0] + np.cos(phi) * Fp) / Y[2] + Y[3] * Y[1]**2 - G * MT / Y[3]**2
         ddθ = ((F * np.cos(alpha) - k * v * Y[1] * Y[3] - np.sin(phi) * Fp) / Y[2] - 2 * Y[0] * Y[1]) / Y[3]
-        # ddr = (F * np.cos(alpha) - k * v * Y[0] + Fp) / Y[2] + Y[3] * Y[1]**2 - G * MT / Y[3]**2
-        # ddθ = ((F * np.sin(alpha) - k * v * Y[1] * Y[3]) / Y[2] - 2 * Y[0] * Y[1]) / Y[3]
         dm = -D
         dr = Y[0]
         dθ = Y[1]
@@ -191,8 +190,6 @@ def calc_2 (Y,t) :
     else:
         ddr = (- k * v * Y[0] + np.cos(phi) * Fp) / Y[2] + Y[3] * Y[1]**2 - G * MT / Y[3]**2
         ddθ = ((- k * v * Y[1] * Y[3] - np.sin(phi) * Fp) / Y[2] - 2 * Y[0] * Y[1]) / Y[3]
-        # ddr = (- k * v * Y[0] + Fp) / Y[2] + Y[3] * Y[1]**2 - G * MT / Y[3]**2
-        # ddθ = ((- k * v * Y[1] * Y[3]) / Y[2] - 2 * Y[0] * Y[1]) / Y[3]
         dm = 0
         dr = Y[0]
         dθ = Y[1]
@@ -232,11 +229,11 @@ print("\n==========\nTemps de la seconde phase: ", t_2[-1], "\n==========")
 
 #Tracé
 plt.figure()
-# plt.plot(y_2, P_2)
-# plt.plot(y, P)
+# plt.plot(t_21, v_2)
 plt.plot(x_2, y_2); plt.plot(x, y)
 # plt.plot(x_2, y_2, marker='x', ls='none');plt.plot(x, y, marker='x', ls='none')
 plt.ylabel('Altitude en m')
 plt.xlabel('Longueur en m')
 plt.grid()
+
 plt.show()

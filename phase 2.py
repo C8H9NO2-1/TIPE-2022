@@ -36,7 +36,7 @@ def calc_1 (Y,t) :
     F = 2000e3*9 #Poussée des moteurs
     
     g = 9.8
-    M = 28.956e-3 #g/mol
+    M = 28.956e-3 #kg/mol
     R = 8.314
 
     #Coefficient de frottements
@@ -142,7 +142,7 @@ def calc_2 (Y,t) :
     F = 2000e3 * 2 #Poussée des moteurs
     
     g = 9.8
-    M = 28.956e-3 #g/mol
+    M = 28.956e-3 #kg/mol
     R = 8.314
     rho_air = Y[5] * M / (R * Temp(Y[4]))
     
