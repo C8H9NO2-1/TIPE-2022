@@ -137,7 +137,7 @@ Y0_2 = np.array([vx[-1],vy[-1],380e3,x[-1],y[-1],P[-1]])
 def calc_2 (Y,t) :
 
     D = 518*2 #Débit massique
-    alpha = 0 * np.pi / 180
+    alpha = -90 * np.pi / 180
     # print(alpha * 180 / np.pi) 
     F = 2000e3 * 2 #Poussée des moteurs
     
@@ -156,13 +156,13 @@ def calc_2 (Y,t) :
     Cx = 0.02
     k = .5 * rho_air * Cx * S
     
+    phi = np.arccos(Y[0] / v) # Angle entre le vecteur vitesse et le repère (Cf feuille d'explication)
+    
     #Force de portance 
-    A = 461 #m2
+    A = 461 * np.sin(alpha - phi) #m2
     Cy = 0.1
     Fp = .5 * rho_air * A * Cy * v**2 # Portance
     # Fp = 0
-    
-    phi = np.arccos(Y[0] / v) # Angle entre le vecteur vitesse et le repère (Cf feuille d'explication)
 
     #Y[0] => Vitesse selon x
     #Y[1] => Vitesse selon y

@@ -33,6 +33,14 @@ def angle_phase1(y):
         else: return -75 - 15 * (y - 60e3) / 20e3
     return aux(y) * np.pi / 180
 
+def angle_phase1_v2(y):
+    def aux(y):
+        if y < 10e3: return -5 - 15 * y / 10e3
+        elif y < 30e3: return - 20 - 20 * (y - 10e3) / 20e3
+        elif y < 60e3: return - 40 - 40 * (y - 30e3) / 30e3
+        else: return - 80 - 10 * (y - 60e3) / 20e3
+    return aux(y) * np.pi / 180
+
 def calc_1 (Y,t) :
 
     D = 518*9 #Débit massique
@@ -134,10 +142,10 @@ Y0_2 = np.array([vy[-1], vx[-1] / (y[-1] + RT), 380e3, y[-1] + RT, np.arctan(x[-
 
 def calc_2 (Y,t) :
 
-    D = 518 * 2 #Débit massique
-    alpha = -90 * np.pi / 180
+    D = 515 * 2 #Débit massique
+    alpha = 1 * np.pi / 180
     # print(alpha * 180 / np.pi) 
-    F = 2000e3 * 2 #Poussée des moteurs
+    F = 2268e3 * 2 #Poussée des moteurs
     # F = 0
     
     g = 9.8
@@ -156,13 +164,13 @@ def calc_2 (Y,t) :
     k = .5 * rho_air * Cx * S
     # k = 0
     
-    #Force de portance 
-    A = 461 #m2
-    Cy = 0.1
-    Fp = .5 * rho_air * A * Cy * v**2 # Portance
-    Fp = 4.66e6
-    
     phi = np.arcsin(Y[0] / v) # Angle entre le vecteur vitesse et le repère (Cf feuille d'explication)
+    
+    #Force de portance 
+    A = 461 * np.sin(alpha - phi) #m2
+    Cz = 0.1
+    Fp = .5 * rho_air * A * Cz * v**2 # Portance
+    # Fp = 4.66e6
 
     #Y[0] => dr
     #Y[1] => dθ
@@ -186,7 +194,7 @@ def calc_2 (Y,t) :
         dr = Y[0]
         dθ = Y[1]
         dP = (-Y[5] * M * (G * MT / Y[3]**2) / (R * Temp(Y[3] - RT))) * Y[0]
-        
+
     else:
         ddr = (- k * v * Y[0] + np.cos(phi) * Fp) / Y[2] + Y[3] * Y[1]**2 - G * MT / Y[3]**2
         ddθ = ((- k * v * Y[1] * Y[3] - np.sin(phi) * Fp) / Y[2] - 2 * Y[0] * Y[1]) / Y[3]
@@ -229,11 +237,13 @@ print("\n==========\nTemps de la seconde phase: ", t_2[-1], "\n==========")
 
 #Tracé
 plt.figure()
-# plt.plot(t_21, v_2)
 plt.plot(x_2, y_2); plt.plot(x, y)
 # plt.plot(x_2, y_2, marker='x', ls='none');plt.plot(x, y, marker='x', ls='none')
 plt.ylabel('Altitude en m')
 plt.xlabel('Longueur en m')
 plt.grid()
+
+plt.figure()
+plt.plot(t_21, v_2)
 
 plt.show()
